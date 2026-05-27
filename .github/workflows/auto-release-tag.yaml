@@ -135,6 +135,21 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       environment: Development
+      environment_url: http://dev.devsecops.local
+
+  development-access-info:
+    name: Development Access Information
+    needs:
+      - create-release-tag
+      - deploy-development
+    if: endsWith(needs.create-release-tag.outputs.version, '-alpha')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Display development environment URL
+        run: |
+          echo "Development environment deployed successfully"
+          echo "Application URL: http://dev.devsecops.local"
 
   deploy-staging:
     name: Deploy Staging Environment
@@ -143,6 +158,21 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       environment: Staging
+      environment_url: http://stg.devsecops.local
+
+  staging-access-info:
+    name: Staging Access Information
+    needs:
+      - create-release-tag
+      - deploy-staging
+    if: endsWith(needs.create-release-tag.outputs.version, '-beta')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Display staging environment URL
+        run: |
+          echo "Staging environment deployed successfully"
+          echo "Application URL: http://stg.devsecops.local"
 
   deploy-production:
     name: Deploy Production Environment
@@ -151,3 +181,18 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       environment: Production
+      environment_url: https://devsecops.example.com
+
+  production-access-info:
+    name: Production Access Information
+    needs:
+      - create-release-tag
+      - deploy-production
+    if: ${{ !contains(needs.create-release-tag.outputs.version, '-') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Display production environment URL
+        run: |
+          echo "Production environment deployed successfully"
+          echo "Application URL: https://devsecops.example.com"
