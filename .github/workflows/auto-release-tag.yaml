@@ -129,6 +129,7 @@ jobs:
     needs: create-release-tag
     if: endsWith(needs.create-release-tag.outputs.version, '-alpha')
     uses: ./.github/workflows/build.yml
+    secrets: inherit
     with:
       environment: Development
       version: ${{ needs.create-release-tag.outputs.version }}
@@ -138,6 +139,7 @@ jobs:
     needs: create-release-tag
     if: endsWith(needs.create-release-tag.outputs.version, '-beta')
     uses: ./.github/workflows/build.yml
+    secrets: inherit
     with:
       environment: Staging
       version: ${{ needs.create-release-tag.outputs.version }}
@@ -147,6 +149,7 @@ jobs:
     needs: create-release-tag
     if: ${{ !contains(needs.create-release-tag.outputs.version, '-') }}
     uses: ./.github/workflows/build.yml
+    secrets: inherit
     with:
       environment: Production
       version: ${{ needs.create-release-tag.outputs.version }}

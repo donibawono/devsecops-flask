@@ -252,4 +252,5 @@ v1.0.0
 
 ## Author
 
-DevSecOps Platform Engineering Demo Project
+- GitHub: <https://github.com/donibawono>
+- Docker Hub: <https://hub.docker.com/u/donibawono>
