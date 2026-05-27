@@ -1,9 +1,9 @@
 name: Development Deployment Pipeline
 
 on:
-  release:
-    types:
-      - published
+  push:
+    tags:
+      - 'v*-alpha'
 
 jobs:
   validate-alpha-release:
@@ -11,16 +11,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Validate release tag format
         run: |
-          echo "Release tag: ${{ github.event.release.tag_name }}"
+          echo "Release tag: ${{ github.ref_name }}"
 
-          if [[ ! "${{ github.event.release.tag_name }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-alpha$ ]]; then
+          if [[ ! "${{ github.ref_name }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-alpha$ ]]; then
             echo "Release tag must follow format: v0.0.0-alpha"
             exit 1
           fi
 
-          TAG_COMMIT=$(git rev-list -n 1 ${{ github.event.release.tag_name }})
+          TAG_COMMIT=$(git rev-list -n 1 ${{ github.ref_name }})
           DEV_HEAD=$(git rev-parse origin/dev)
 
           echo "Tag commit SHA: $TAG_COMMIT"
