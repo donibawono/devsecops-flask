@@ -1,0 +1,35 @@
+name: Development Deployment Pipeline
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  validate-alpha-release:
+    name: Validate Alpha Release Tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate release tag format
+        run: |
+          echo "Release tag: ${{ github.event.release.tag_name }}"
+
+          if [[ ! "${{ github.event.release.tag_name }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-alpha$ ]]; then
+            echo "Release tag must follow format: v0.0.0-alpha"
+            exit 1
+          fi
+
+  generate-changelog:
+    name: Generate Release Changelog
+    needs: validate-alpha-release
+    uses: ./.github/workflows/changelog.yml
+
+  deploy-development:
+    name: Deploy Development Environment
+    needs:
+      - validate-alpha-release
+      - generate-changelog
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: Development
