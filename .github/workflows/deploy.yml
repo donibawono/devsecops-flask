@@ -7,10 +7,16 @@ on:
         required: true
         type: string
 
+      environment_url:
+        required: true
+        type: string
+
 jobs:
   deployment:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ inputs.environment_url }}
 
     steps:
       - name: Checkout Source
@@ -19,6 +25,7 @@ jobs:
       - name: Show Environment
         run: |
           echo "Deploying to ${{ inputs.environment }}"
+          echo "Environment URL: ${{ inputs.environment_url }}"
 
       - name: Deploy Application
         run: |

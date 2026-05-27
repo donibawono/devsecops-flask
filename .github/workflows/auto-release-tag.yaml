@@ -1,0 +1,153 @@
+name: Automatic Release Tagging
+
+on:
+  push:
+    branches:
+      - dev
+      - stg
+      - main
+
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  create-release-tag:
+    name: Create Automatic Release Tag
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine release suffix
+        id: release
+        run: |
+          BRANCH_NAME="${GITHUB_REF_NAME}"
+
+          echo "Current branch: $BRANCH_NAME"
+
+          if [[ "$BRANCH_NAME" == "dev" ]]; then
+            SUFFIX="-alpha"
+          elif [[ "$BRANCH_NAME" == "stg" ]]; then
+            SUFFIX="-beta"
+          elif [[ "$BRANCH_NAME" == "main" ]]; then
+            SUFFIX=""
+          else
+            echo "Unsupported branch"
+            exit 1
+          fi
+
+          echo "suffix=$SUFFIX" >> $GITHUB_OUTPUT
+
+      - name: Generate semantic version
+        id: version
+        run: |
+          SUFFIX="${{ steps.release.outputs.suffix }}"
+
+          LATEST_TAG=$(git tag --list "v*${SUFFIX}" --sort=-v:refname | head -n 1)
+
+          if [[ -z "$LATEST_TAG" ]]; then
+            MAJOR=0
+            MINOR=0
+            PATCH=0
+          else
+            VERSION=$(echo "$LATEST_TAG" | sed -E 's/^v([0-9]+)\.([0-9]+)\.([0-9]+).*/\1 \2 \3/')
+            read MAJOR MINOR PATCH <<< "$VERSION"
+          fi
+
+          COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+
+          echo "Latest commit message: $COMMIT_MESSAGE"
+
+          if [[ "$COMMIT_MESSAGE" =~ BREAKING\ CHANGE ]] || [[ "$COMMIT_MESSAGE" =~ ^feat\! ]]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            BUMP_TYPE="major"
+
+          elif [[ "$COMMIT_MESSAGE" =~ ^feat ]]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            BUMP_TYPE="minor"
+
+          else
+            PATCH=$((PATCH + 1))
+            BUMP_TYPE="patch"
+          fi
+
+          NEXT_VERSION="v${MAJOR}.${MINOR}.${PATCH}${SUFFIX}"
+
+          echo "Version bump type: $BUMP_TYPE"
+          echo "Next version: $NEXT_VERSION"
+
+          echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check existing tag
+        run: |
+          if git ls-remote --tags origin | grep "refs/tags/${{ steps.version.outputs.version }}$" >/dev/null 2>&1; then
+            echo "Tag already exists on remote repository"
+            exit 1
+          fi
+
+      - name: Create and push release tag
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          git tag -a "${{ steps.version.outputs.version }}" -m "Automatic release ${{ steps.version.outputs.version }}"
+
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git
+
+          git push origin "${{ steps.version.outputs.version }}"
+
+      - name: Display created tag
+        run: |
+          echo "Created release tag: ${{ steps.version.outputs.version }}"
+
+
+  generate-changelog:
+    name: Generate Release Changelog
+    needs: create-release-tag
+    uses: ./.github/workflows/changelog.yml
+
+  deploy-development:
+    name: Deploy Development Environment
+    needs: create-release-tag
+    if: endsWith(needs.create-release-tag.outputs.version, '-alpha')
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: Development
+      environment_url: http://dev.devsecops.local
+
+
+  deploy-staging:
+    name: Deploy Staging Environment
+    needs: create-release-tag
+    if: endsWith(needs.create-release-tag.outputs.version, '-beta')
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: Staging
+      environment_url: http://stg.devsecops.local
+
+
+  deploy-production:
+    name: Deploy Production Environment
+    needs: create-release-tag
+    if: ${{ !contains(needs.create-release-tag.outputs.version, '-') }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: Production
+      environment_url: https://devsecops.example.com
