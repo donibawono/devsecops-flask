@@ -123,9 +123,38 @@ jobs:
     needs: create-release-tag
     uses: ./.github/workflows/changelog.yml
 
+  build-development-image:
+    name: Build Development Container Image
+    needs: create-release-tag
+    if: endsWith(needs.create-release-tag.outputs.version, '-alpha')
+    uses: ./.github/workflows/build.yml
+    with:
+      environment: Development
+      version: ${{ needs.create-release-tag.outputs.version }}
+
+  build-staging-image:
+    name: Build Staging Container Image
+    needs: create-release-tag
+    if: endsWith(needs.create-release-tag.outputs.version, '-beta')
+    uses: ./.github/workflows/build.yml
+    with:
+      environment: Staging
+      version: ${{ needs.create-release-tag.outputs.version }}
+
+  build-production-image:
+    name: Build Production Container Image
+    needs: create-release-tag
+    if: ${{ !contains(needs.create-release-tag.outputs.version, '-') }}
+    uses: ./.github/workflows/build.yml
+    with:
+      environment: Production
+      version: ${{ needs.create-release-tag.outputs.version }}
+
   deploy-development:
     name: Deploy Development Environment
-    needs: create-release-tag
+    needs:
+      - create-release-tag
+      - build-development-image
     if: endsWith(needs.create-release-tag.outputs.version, '-alpha')
     uses: ./.github/workflows/deploy.yml
     with:
@@ -135,7 +164,9 @@ jobs:
 
   deploy-staging:
     name: Deploy Staging Environment
-    needs: create-release-tag
+    needs:
+      - create-release-tag
+      - build-staging-image
     if: endsWith(needs.create-release-tag.outputs.version, '-beta')
     uses: ./.github/workflows/deploy.yml
     with:
@@ -145,7 +176,9 @@ jobs:
 
   deploy-production:
     name: Deploy Production Environment
-    needs: create-release-tag
+    needs:
+      - create-release-tag
+      - build-production-image
     if: ${{ !contains(needs.create-release-tag.outputs.version, '-') }}
     uses: ./.github/workflows/deploy.yml
     with:
