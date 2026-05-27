@@ -1,0 +1,17 @@
+name: Production Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate-main-source:
+    uses: ./.github/workflows/protect-main.yml
+
+  production-deployment:
+    name: Production Deployment
+    needs: validate-main-source
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: Production

@@ -1,9 +1,7 @@
 name: Protect Main Branch
 
 on:
-  pull_request:
-    branches:
-      - main
+  workflow_call:
 
 jobs:
   validate-source-branch:
