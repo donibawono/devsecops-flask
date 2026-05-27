@@ -1,0 +1,15 @@
+name: Build
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Application
+        run: |
+          echo "Building application"

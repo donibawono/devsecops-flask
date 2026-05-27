@@ -1,0 +1,41 @@
+name: DevSecOps Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
+  test:
+    needs: lint
+    uses: ./.github/workflows/test.yml
+
+  security-scan:
+    needs: test
+    uses: ./.github/workflows/security-scan.yml
+
+  validate-version:
+    needs: security-scan
+    uses: ./.github/workflows/validate-version.yml
+
+  build:
+    needs: validate-version
+    uses: ./.github/workflows/build.yml
+
+  push-artifact:
+    needs: build
+    uses: ./.github/workflows/push-artifact.yml
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  deploy:
+    needs: push-artifact
+    uses: ./.github/workflows/deploy.yml
+
+  release:
+    needs: deploy
+    uses: ./.github/workflows/release.yml

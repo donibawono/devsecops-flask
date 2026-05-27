@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <title>DevSecOps Platform</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="background-glow"></div>
+
+    <header class="navbar">
+        <div class="logo">
+            DevSecOps
+        </div>
+
+        <nav>
+            <a href="#">Home</a>
+            <a href="#">Pipeline</a>
+            <a href="#">Security</a>
+            <a href="#">Monitoring</a>
+        </nav>
+    </header>
+
+    <main class="hero">
+
+        <div class="hero-left">
+
+            <span class="badge">
+                Secure CI/CD Platform
+            </span>
+
+            <h1>
+                Build Secure<br>
+                Modern DevSecOps Platform
+            </h1>
+
+            <p>
+                Automate security, streamline deployment,
+                and improve software delivery reliability
+                across your infrastructure ecosystem.
+            </p>
+
+            <div class="hero-buttons">
+                <button class="primary-btn" id="startBtn">
+                    Get Started
+                </button>
+
+                <button class="secondary-btn">
+                    Documentation
+                </button>
+            </div>
+
+            <div class="stats">
+
+                <div class="card">
+                    <h2>99.95%</h2>
+                    <p>Availability</p>
+                </div>
+
+                <div class="card">
+                    <h2>24/7</h2>
+                    <p>Monitoring</p>
+                </div>
+
+                <div class="card">
+                    <h2>DevSecOps</h2>
+                    <p>Automation</p>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="hero-right">
+
+            <div class="terminal">
+
+                <div class="terminal-header">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+
+                <div class="terminal-body">
+
+<pre>
+$ git push origin main
+
+✔ Running Security Scan
+✔ Building Container Image
+✔ Running Unit Test
+✔ Deploying Kubernetes
+
+STATUS: SUCCESS
+</pre>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+<footer class="footer">
+    <p>
+        DevSecOps Platform v1.0.0 © 2026 |
+        Host: {{ hostname }}
+    </p>
+</footer>
+
+</body>
+</html>

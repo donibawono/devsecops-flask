@@ -1,0 +1,25 @@
+name: Deployment
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v6
+
+      - name: Show Environment
+        run: |
+          echo "Deploying to ${{ inputs.environment }}"
+
+      - name: Deploy Application
+        run: |
+          echo "Deploy process started"

@@ -1,0 +1,30 @@
+name: Development Pipeline
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  contents: read
+  security-events: write
+  issues: write
+  actions: read
+
+jobs:
+  code-quality-check:
+    uses: ./.github/workflows/lint.yml
+  unit-test:
+    needs: code-quality-check
+    uses: ./.github/workflows/test.yml
+  sast-bandit-scan:
+    needs: unit-test
+    uses: ./.github/workflows/sast.yml
+  dast-zap-scan:
+    needs: sast-bandit-scan
+    uses: ./.github/workflows/dast.yml
+  development-deployment:
+    needs: dast-zap-scan
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: Development
