@@ -1,0 +1,106 @@
+name: Automatic Release Tagging
+
+on:
+  push:
+    branches:
+      - dev
+      - stg
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  create-release-tag:
+    name: Create Automatic Release Tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine release suffix
+        id: release
+        run: |
+          BRANCH_NAME="${GITHUB_REF_NAME}"
+
+          echo "Current branch: $BRANCH_NAME"
+
+          if [[ "$BRANCH_NAME" == "dev" ]]; then
+            SUFFIX="-alpha"
+          elif [[ "$BRANCH_NAME" == "stg" ]]; then
+            SUFFIX="-beta"
+          elif [[ "$BRANCH_NAME" == "main" ]]; then
+            SUFFIX=""
+          else
+            echo "Unsupported branch"
+            exit 1
+          fi
+
+          echo "suffix=$SUFFIX" >> $GITHUB_OUTPUT
+
+      - name: Generate semantic version
+        id: version
+        run: |
+          SUFFIX="${{ steps.release.outputs.suffix }}"
+
+          LATEST_TAG=$(git tag --list "v*${SUFFIX}" --sort=-v:refname | head -n 1)
+
+          if [[ -z "$LATEST_TAG" ]]; then
+            MAJOR=0
+            MINOR=0
+            PATCH=0
+          else
+            VERSION=$(echo "$LATEST_TAG" | sed -E 's/^v([0-9]+)\.([0-9]+)\.([0-9]+).*/\1 \2 \3/')
+            read MAJOR MINOR PATCH <<< "$VERSION"
+          fi
+
+          COMMIT_MESSAGE=$(git log -1 --pretty=%s)
+
+          echo "Latest commit message: $COMMIT_MESSAGE"
+
+          if [[ "$COMMIT_MESSAGE" =~ BREAKING\ CHANGE ]] || [[ "$COMMIT_MESSAGE" =~ ^feat\! ]]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            BUMP_TYPE="major"
+
+          elif [[ "$COMMIT_MESSAGE" =~ ^feat ]]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            BUMP_TYPE="minor"
+
+          else
+            PATCH=$((PATCH + 1))
+            BUMP_TYPE="patch"
+          fi
+
+          NEXT_VERSION="v${MAJOR}.${MINOR}.${PATCH}${SUFFIX}"
+
+          echo "Version bump type: $BUMP_TYPE"
+          echo "Next version: $NEXT_VERSION"
+
+          echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check existing tag
+        run: |
+          if git rev-parse "${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "Tag already exists"
+            exit 1
+          fi
+
+      - name: Create and push release tag
+        run: |
+          git tag -a "${{ steps.version.outputs.version }}" -m "Automatic release ${{ steps.version.outputs.version }}"
+          git push origin "${{ steps.version.outputs.version }}"
+
+      - name: Display created tag
+        run: |
+          echo "Created release tag: ${{ steps.version.outputs.version }}"
