@@ -26,6 +26,8 @@ jobs:
         run: |
           echo "Deploying to ${{ inputs.environment }}"
           echo "Environment URL: ${{ inputs.environment_url }}"
+          echo "Docker Image: ${{ secrets.DOCKERHUB_USERNAME }}/devsecops-flask"
+          echo "Docker Tag: ${{ github.ref_name }}"
 
       - name: Deploy Application
         run: |
