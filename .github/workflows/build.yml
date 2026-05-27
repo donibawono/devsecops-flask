@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set image metadata
         id: metadata
@@ -45,7 +45,7 @@ jobs:
             exit 1
           fi
 
-          IMAGE_TAG="$VERSION"
+          IMAGE_TAG=$(echo "$VERSION" | sed 's/^v//')
 
           echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
@@ -61,17 +61,17 @@ jobs:
         run: |
           docker build \
             --tag ${{ steps.metadata.outputs.image_name }}:${{ steps.metadata.outputs.image_tag }} \
-            --tag ${{ steps.metadata.outputs.image_name }}:latest \
+            --tag ${{ steps.metadata.outputs.image_name }}:${{ steps.metadata.outputs.latest_tag }} \
             .
 
       - name: Push Docker image
         run: |
           docker push ${{ steps.metadata.outputs.image_name }}:${{ steps.metadata.outputs.image_tag }}
-          docker push ${{ steps.metadata.outputs.image_name }}:latest
+          docker push ${{ steps.metadata.outputs.image_name }}:${{ steps.metadata.outputs.latest_tag }}
 
       - name: Display image information
         run: |
           echo "Container image pushed successfully"
           echo "Image: ${{ steps.metadata.outputs.image_name }}"
           echo "Tag: ${{ steps.metadata.outputs.image_tag }}"
-          echo "Latest: latest"
+          echo "Latest: ${{ steps.metadata.outputs.latest_tag }}"

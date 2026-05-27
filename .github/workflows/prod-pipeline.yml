@@ -8,11 +8,3 @@ on:
 jobs:
   validate-main-source:
     uses: ./.github/workflows/protect-main.yml
-
-  production-deployment:
-    name: Production Deployment
-    needs: validate-main-source
-    uses: ./.github/workflows/deploy.yml
-    with:
-      environment: Production
-      environment_url: https://devsecops.example.com
