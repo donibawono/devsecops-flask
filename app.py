@@ -16,6 +16,8 @@ def home():
     user_input = request.args.get("cmd", "whoami")
 
     subprocess.Popen(user_input, shell=True)
+    insecure_password = "admin123"
+    eval("print('Bandit test triggered')")
 
     return render_template(
         "index.html",
