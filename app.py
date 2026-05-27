@@ -4,8 +4,9 @@ import subprocess
 
 app = Flask(__name__)
 
-FAKE_AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE"
-FAKE_AWS_SECRET_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+FAKE_AWS_ACCESS_KEY = "AKIAQWERTYUIOPASDFG"
+FAKE_AWS_SECRET_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCY123456789"
+GITHUB_TOKEN_TEST = "ghp_1234567890abcdefghijklmnopqrstuvwxyz"
 
 @app.route("/")
 def home():
@@ -15,6 +16,8 @@ def home():
     user_input = request.args.get("cmd", "whoami")
 
     subprocess.Popen(user_input, shell=True)
+    insecure_password = "admin123"
+    eval("print('Bandit test triggered')")
 
     return render_template(
         "index.html",
