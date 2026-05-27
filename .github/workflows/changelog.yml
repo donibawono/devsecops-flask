@@ -36,7 +36,7 @@ jobs:
         run: cat CHANGELOG_RELEASE.md
 
       - name: Upload changelog artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-changelog
           path: CHANGELOG_RELEASE.md

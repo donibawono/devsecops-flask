@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set image metadata
         id: metadata
@@ -61,7 +61,7 @@ jobs:
         run: |
           docker build \
             --tag ${{ steps.metadata.outputs.image_name }}:${{ steps.metadata.outputs.image_tag }} \
-            --tag ${{ steps.metadata.outputs.image_name }}:latest \
+            --tag ${{ steps.metadata.outputs.image_name }}:${{ steps.metadata.outputs.latest_tag }} \
             .
 
       - name: Push Docker image
