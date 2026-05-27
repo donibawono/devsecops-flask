@@ -97,8 +97,13 @@ jobs:
           fi
 
       - name: Create and push release tag
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git tag -a "${{ steps.version.outputs.version }}" -m "Automatic release ${{ steps.version.outputs.version }}"
+
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git
+
           git push origin "${{ steps.version.outputs.version }}"
 
       - name: Display created tag
