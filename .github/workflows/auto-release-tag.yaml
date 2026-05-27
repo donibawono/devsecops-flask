@@ -14,6 +14,8 @@ jobs:
   create-release-tag:
     name: Create Automatic Release Tag
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
 
     steps:
       - name: Checkout repository
@@ -126,20 +128,26 @@ jobs:
 
           cat CHANGELOG_RELEASE.md
 
-      - name: Deploy Development Environment
-        if: endsWith(steps.version.outputs.version, '-alpha')
-        uses: ./.github/workflows/deploy.yml
-        with:
-          environment: Development
+  deploy-development:
+    name: Deploy Development Environment
+    needs: create-release-tag
+    if: endsWith(needs.create-release-tag.outputs.version, '-alpha')
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: Development
 
-      - name: Deploy Staging Environment
-        if: endsWith(steps.version.outputs.version, '-beta')
-        uses: ./.github/workflows/deploy.yml
-        with:
-          environment: Staging
+  deploy-staging:
+    name: Deploy Staging Environment
+    needs: create-release-tag
+    if: endsWith(needs.create-release-tag.outputs.version, '-beta')
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: Staging
 
-      - name: Deploy Production Environment
-        if: ${{ !contains(steps.version.outputs.version, '-') }}
-        uses: ./.github/workflows/deploy.yml
-        with:
-          environment: Production
+  deploy-production:
+    name: Deploy Production Environment
+    needs: create-release-tag
+    if: ${{ !contains(needs.create-release-tag.outputs.version, '-') }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: Production
