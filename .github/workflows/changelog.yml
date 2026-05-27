@@ -1,0 +1,42 @@
+
+
+name: Reusable Changelog Generator
+
+on:
+  workflow_call:
+
+jobs:
+  generate-changelog:
+    name: Generate Release Changelog
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        run: |
+          echo "## Release Changelog" > CHANGELOG_RELEASE.md
+          echo "" >> CHANGELOG_RELEASE.md
+
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "- Initial release" >> CHANGELOG_RELEASE.md
+          else
+            git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s" >> CHANGELOG_RELEASE.md
+          fi
+
+      - name: Display changelog
+        run: cat CHANGELOG_RELEASE.md
+
+      - name: Upload changelog artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-changelog
+          path: CHANGELOG_RELEASE.md
