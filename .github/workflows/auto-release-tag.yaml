@@ -109,3 +109,37 @@ jobs:
       - name: Display created tag
         run: |
           echo "Created release tag: ${{ steps.version.outputs.version }}"
+
+      - name: Generate Release Changelog
+        if: success()
+        run: |
+          echo "## Release Changelog" > CHANGELOG_RELEASE.md
+          echo "" >> CHANGELOG_RELEASE.md
+
+          PREVIOUS_TAG=$(git tag --list "v*${{ steps.release.outputs.suffix }}" --sort=-v:refname | sed -n '2p')
+
+          if [[ -z "$PREVIOUS_TAG" ]]; then
+            echo "- Initial release" >> CHANGELOG_RELEASE.md
+          else
+            git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s" >> CHANGELOG_RELEASE.md
+          fi
+
+          cat CHANGELOG_RELEASE.md
+
+      - name: Deploy Development Environment
+        if: endsWith(steps.version.outputs.version, '-alpha')
+        uses: ./.github/workflows/deploy.yml
+        with:
+          environment: Development
+
+      - name: Deploy Staging Environment
+        if: endsWith(steps.version.outputs.version, '-beta')
+        uses: ./.github/workflows/deploy.yml
+        with:
+          environment: Staging
+
+      - name: Deploy Production Environment
+        if: ${{ !contains(steps.version.outputs.version, '-') }}
+        uses: ./.github/workflows/deploy.yml
+        with:
+          environment: Production
