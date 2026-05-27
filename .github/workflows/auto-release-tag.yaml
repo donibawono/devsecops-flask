@@ -7,8 +7,13 @@ on:
       - stg
       - main
 
+
 permissions:
   contents: write
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
   create-release-tag:
@@ -64,7 +69,7 @@ jobs:
             read MAJOR MINOR PATCH <<< "$VERSION"
           fi
 
-          COMMIT_MESSAGE=$(git log -1 --pretty=%s)
+          COMMIT_MESSAGE=$(git log -1 --pretty=%B)
 
           echo "Latest commit message: $COMMIT_MESSAGE"
 
@@ -93,8 +98,8 @@ jobs:
 
       - name: Check existing tag
         run: |
-          if git rev-parse "${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
-            echo "Tag already exists"
+          if git ls-remote --tags origin | grep "refs/tags/${{ steps.version.outputs.version }}$" >/dev/null 2>&1; then
+            echo "Tag already exists on remote repository"
             exit 1
           fi
 
@@ -112,21 +117,11 @@ jobs:
         run: |
           echo "Created release tag: ${{ steps.version.outputs.version }}"
 
-      - name: Generate Release Changelog
-        if: success()
-        run: |
-          echo "## Release Changelog" > CHANGELOG_RELEASE.md
-          echo "" >> CHANGELOG_RELEASE.md
 
-          PREVIOUS_TAG=$(git tag --list "v*${{ steps.release.outputs.suffix }}" --sort=-v:refname | sed -n '2p')
-
-          if [[ -z "$PREVIOUS_TAG" ]]; then
-            echo "- Initial release" >> CHANGELOG_RELEASE.md
-          else
-            git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s" >> CHANGELOG_RELEASE.md
-          fi
-
-          cat CHANGELOG_RELEASE.md
+  generate-changelog:
+    name: Generate Release Changelog
+    needs: create-release-tag
+    uses: ./.github/workflows/changelog.yml
 
   deploy-development:
     name: Deploy Development Environment
@@ -137,19 +132,6 @@ jobs:
       environment: Development
       environment_url: http://dev.devsecops.local
 
-  development-access-info:
-    name: Development Access Information
-    needs:
-      - create-release-tag
-      - deploy-development
-    if: endsWith(needs.create-release-tag.outputs.version, '-alpha')
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Display development environment URL
-        run: |
-          echo "Development environment deployed successfully"
-          echo "Application URL: http://dev.devsecops.local"
 
   deploy-staging:
     name: Deploy Staging Environment
@@ -160,19 +142,6 @@ jobs:
       environment: Staging
       environment_url: http://stg.devsecops.local
 
-  staging-access-info:
-    name: Staging Access Information
-    needs:
-      - create-release-tag
-      - deploy-staging
-    if: endsWith(needs.create-release-tag.outputs.version, '-beta')
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Display staging environment URL
-        run: |
-          echo "Staging environment deployed successfully"
-          echo "Application URL: http://stg.devsecops.local"
 
   deploy-production:
     name: Deploy Production Environment
@@ -182,17 +151,3 @@ jobs:
     with:
       environment: Production
       environment_url: https://devsecops.example.com
-
-  production-access-info:
-    name: Production Access Information
-    needs:
-      - create-release-tag
-      - deploy-production
-    if: ${{ !contains(needs.create-release-tag.outputs.version, '-') }}
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Display production environment URL
-        run: |
-          echo "Production environment deployed successfully"
-          echo "Application URL: https://devsecops.example.com"
