@@ -20,6 +20,19 @@ jobs:
             exit 1
           fi
 
+          TAG_COMMIT=$(git rev-list -n 1 ${{ github.event.release.tag_name }})
+          DEV_HEAD=$(git rev-parse origin/dev)
+
+          echo "Tag commit SHA: $TAG_COMMIT"
+          echo "Dev branch HEAD SHA: $DEV_HEAD"
+
+          if [[ "$TAG_COMMIT" != "$DEV_HEAD" ]]; then
+            echo "Release tag must match the latest commit from dev branch"
+            exit 1
+          fi
+
+          echo "Validated release tag from dev branch HEAD"
+
   generate-changelog:
     name: Generate Release Changelog
     needs: validate-alpha-release
