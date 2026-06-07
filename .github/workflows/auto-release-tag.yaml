@@ -154,11 +154,42 @@ jobs:
       environment: Production
       version: ${{ needs.create-release-tag.outputs.version }}
 
+  scan-development-image:
+    name: Scan Development Container Image
+    needs:
+      - create-release-tag
+      - build-development-image
+    if: endsWith(needs.create-release-tag.outputs.version, '-alpha')
+    uses: ./.github/workflows/reusable-image-scan.yml
+    with:
+      image_name: ghcr.io/${{ github.repository }}:${{ needs.create-release-tag.outputs.version }}
+
+  scan-staging-image:
+    name: Scan Staging Container Image
+    needs:
+      - create-release-tag
+      - build-staging-image
+    if: endsWith(needs.create-release-tag.outputs.version, '-beta')
+    uses: ./.github/workflows/reusable-image-scan.yml
+    with:
+      image_name: ghcr.io/${{ github.repository }}:${{ needs.create-release-tag.outputs.version }}
+
+  scan-production-image:
+    name: Scan Production Container Image
+    needs:
+      - create-release-tag
+      - build-production-image
+    if: ${{ !contains(needs.create-release-tag.outputs.version, '-') }}
+    uses: ./.github/workflows/reusable-image-scan.yml
+    with:
+      image_name: ghcr.io/${{ github.repository }}:${{ needs.create-release-tag.outputs.version }}
+
   deploy-development:
     name: Deploy Development Environment
     needs:
       - create-release-tag
       - build-development-image
+      - scan-development-image
     if: endsWith(needs.create-release-tag.outputs.version, '-alpha')
     uses: ./.github/workflows/deploy.yml
     with:
@@ -171,6 +202,7 @@ jobs:
     needs:
       - create-release-tag
       - build-staging-image
+      - scan-staging-image
     if: endsWith(needs.create-release-tag.outputs.version, '-beta')
     uses: ./.github/workflows/deploy.yml
     with:
@@ -183,6 +215,7 @@ jobs:
     needs:
       - create-release-tag
       - build-production-image
+      - scan-production-image
     if: ${{ !contains(needs.create-release-tag.outputs.version, '-') }}
     uses: ./.github/workflows/deploy.yml
     with:

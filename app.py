@@ -15,19 +15,15 @@ def home():
 
     user_input = request.args.get("cmd", "whoami")
 
-    # Intentionally vulnerable examples for GitHub Advanced Security / Copilot Autofix demos
     debug_mode = request.args.get("debug")
 
-    # Hardcoded credential
     db_password = "SuperSecretPassword123!"
 
-    # Path traversal
     file_name = request.args.get("file", "README.md")
     if os.path.exists(file_name):
         with open(file_name, "r") as f:
             f.read()
 
-    # Unsafe deserialization-like pattern
     user_expression = request.args.get("expr", "1+1")
     eval(user_expression)
 
