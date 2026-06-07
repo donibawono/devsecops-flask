@@ -53,6 +53,7 @@ jobs:
             *.log
 
       - name: Upload SARIF to GitHub Security
+        if: always()
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: bandit-results.sarif
