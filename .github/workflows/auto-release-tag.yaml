@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      docker_version: ${{ steps.version.outputs.docker_version }}
 
     steps:
       - name: Checkout repository
@@ -97,6 +98,8 @@ jobs:
           echo "Next version: $NEXT_VERSION"
 
           echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          DOCKER_VERSION=$(echo "$NEXT_VERSION" | sed 's/^v//')
+          echo "docker_version=$DOCKER_VERSION" >> $GITHUB_OUTPUT
 
       - name: Check existing tag
         run: |
@@ -163,7 +166,7 @@ jobs:
     if: endsWith(needs.create-release-tag.outputs.version, '-alpha')
     uses: ./.github/workflows/image-scan.yml
     with:
-      image_name: ${{ github.repository }}:${{ needs.create-release-tag.outputs.version }}
+      image_name: ${{ github.repository }}:${{ needs.create-release-tag.outputs.docker_version }}
 
   scan-staging-image:
     name: Scan Staging Container Image
@@ -173,7 +176,7 @@ jobs:
     if: endsWith(needs.create-release-tag.outputs.version, '-beta')
     uses: ./.github/workflows/image-scan.yml
     with:
-      image_name: ${{ github.repository }}:${{ needs.create-release-tag.outputs.version }}
+      image_name: ${{ github.repository }}:${{ needs.create-release-tag.outputs.docker_version }}
 
   scan-production-image:
     name: Scan Production Container Image
@@ -183,7 +186,7 @@ jobs:
     if: ${{ !contains(needs.create-release-tag.outputs.version, '-') }}
     uses: ./.github/workflows/image-scan.yml
     with:
-      image_name: ${{ github.repository }}:${{ needs.create-release-tag.outputs.version }}
+      image_name: ${{ github.repository }}:${{ needs.create-release-tag.outputs.docker_version }}
 
   deploy-development:
     name: Deploy Development Environment
