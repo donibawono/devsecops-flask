@@ -4,6 +4,11 @@ import subprocess
 
 app = Flask(__name__)
 
+app_version = "1.0.0"
+
+AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE"
+AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+
 @app.route("/")
 def home():
 
