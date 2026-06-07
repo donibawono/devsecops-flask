@@ -23,6 +23,10 @@ jobs:
     needs: unit-test
     uses: ./.github/workflows/sast.yml
 
-  dast-zap-scan:
+  secret-scanning:
     needs: sast-bandit-scan
+    uses: ./.github/workflows/secret-scanning.yml
+
+  dast-zap-scan:
+    needs: secret-scanning
     uses: ./.github/workflows/dast.yml
