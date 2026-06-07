@@ -11,6 +11,7 @@ on:
 permissions:
   contents: write
   packages: write
+  security-events: write
 
 concurrency:
   group: release-${{ github.ref_name }}
@@ -22,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      docker_version: ${{ steps.version.outputs.docker_version }}
 
     steps:
       - name: Checkout repository
@@ -96,6 +98,8 @@ jobs:
           echo "Next version: $NEXT_VERSION"
 
           echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          DOCKER_VERSION=$(echo "$NEXT_VERSION" | sed 's/^v//')
+          echo "docker_version=$DOCKER_VERSION" >> $GITHUB_OUTPUT
 
       - name: Check existing tag
         run: |
@@ -160,9 +164,9 @@ jobs:
       - create-release-tag
       - build-development-image
     if: endsWith(needs.create-release-tag.outputs.version, '-alpha')
-    uses: ./.github/workflows/reusable-image-scan.yml
+    uses: ./.github/workflows/image-scan.yml
     with:
-      image_name: ghcr.io/${{ github.repository }}:${{ needs.create-release-tag.outputs.version }}
+      image_name: ${{ github.repository }}:${{ needs.create-release-tag.outputs.docker_version }}
 
   scan-staging-image:
     name: Scan Staging Container Image
@@ -170,9 +174,9 @@ jobs:
       - create-release-tag
       - build-staging-image
     if: endsWith(needs.create-release-tag.outputs.version, '-beta')
-    uses: ./.github/workflows/reusable-image-scan.yml
+    uses: ./.github/workflows/image-scan.yml
     with:
-      image_name: ghcr.io/${{ github.repository }}:${{ needs.create-release-tag.outputs.version }}
+      image_name: ${{ github.repository }}:${{ needs.create-release-tag.outputs.docker_version }}
 
   scan-production-image:
     name: Scan Production Container Image
@@ -180,9 +184,9 @@ jobs:
       - create-release-tag
       - build-production-image
     if: ${{ !contains(needs.create-release-tag.outputs.version, '-') }}
-    uses: ./.github/workflows/reusable-image-scan.yml
+    uses: ./.github/workflows/image-scan.yml
     with:
-      image_name: ghcr.io/${{ github.repository }}:${{ needs.create-release-tag.outputs.version }}
+      image_name: ${{ github.repository }}:${{ needs.create-release-tag.outputs.docker_version }}
 
   deploy-development:
     name: Deploy Development Environment

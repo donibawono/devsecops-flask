@@ -1,5 +1,7 @@
 # DevSecOps Flask Application
 
+[![CodeQL](https://github.com/donibawono/devsecops-flask/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/donibawono/devsecops-flask/actions/workflows/github-code-scanning/codeql)
+
 Modern Flask-based DevSecOps landing page with:
 
 - Flask
