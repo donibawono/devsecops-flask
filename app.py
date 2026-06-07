@@ -1,10 +1,9 @@
 from flask import Flask, render_template, request
 import socket
 import subprocess
+import os
 
 app = Flask(__name__)
-
-app_version = "1.0.0"
 
 AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE"
 AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
@@ -15,6 +14,22 @@ def home():
     hostname = socket.gethostname()
 
     user_input = request.args.get("cmd", "whoami")
+
+    # Intentionally vulnerable examples for GitHub Advanced Security / Copilot Autofix demos
+    debug_mode = request.args.get("debug")
+
+    # Hardcoded credential
+    db_password = "SuperSecretPassword123!"
+
+    # Path traversal
+    file_name = request.args.get("file", "README.md")
+    if os.path.exists(file_name):
+        with open(file_name, "r") as f:
+            f.read()
+
+    # Unsafe deserialization-like pattern
+    user_expression = request.args.get("expr", "1+1")
+    eval(user_expression)
 
     subprocess.Popen(user_input, shell=True)
     insecure_password = "admin"
