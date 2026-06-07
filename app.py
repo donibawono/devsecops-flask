@@ -4,10 +4,6 @@ import subprocess
 
 app = Flask(__name__)
 
-FAKE_AWS_ACCESS_KEY = "AKIAQWERTYUIOPASDFG"
-FAKE_AWS_SECRET_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCY123456789"
-GITHUB_TOKEN_TEST = "ghp_1234567890abcdefghijklmnopqrstuvwxyz"
-
 @app.route("/")
 def home():
 
