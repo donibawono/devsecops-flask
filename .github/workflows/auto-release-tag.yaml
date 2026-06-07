@@ -163,7 +163,7 @@ jobs:
     if: endsWith(needs.create-release-tag.outputs.version, '-alpha')
     uses: ./.github/workflows/image-scan.yml
     with:
-      image_name: ghcr.io/${{ github.repository }}:${{ needs.create-release-tag.outputs.version }}
+      image_name: ${{ github.repository }}:${{ needs.create-release-tag.outputs.version }}
 
   scan-staging-image:
     name: Scan Staging Container Image
@@ -173,7 +173,7 @@ jobs:
     if: endsWith(needs.create-release-tag.outputs.version, '-beta')
     uses: ./.github/workflows/image-scan.yml
     with:
-      image_name: ghcr.io/${{ github.repository }}:${{ needs.create-release-tag.outputs.version }}
+      image_name: ${{ github.repository }}:${{ needs.create-release-tag.outputs.version }}
 
   scan-production-image:
     name: Scan Production Container Image
@@ -183,7 +183,7 @@ jobs:
     if: ${{ !contains(needs.create-release-tag.outputs.version, '-') }}
     uses: ./.github/workflows/image-scan.yml
     with:
-      image_name: ghcr.io/${{ github.repository }}:${{ needs.create-release-tag.outputs.version }}
+      image_name: ${{ github.repository }}:${{ needs.create-release-tag.outputs.version }}
 
   deploy-development:
     name: Deploy Development Environment
