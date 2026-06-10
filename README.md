@@ -2,6 +2,8 @@
 
 [![CodeQL](https://github.com/donibawono/devsecops-flask/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/donibawono/devsecops-flask/actions/workflows/github-code-scanning/codeql)
 
+[![Automatic Release Tagging](https://github.com/donibawono/devsecops-flask/actions/workflows/auto-release-tag.yaml/badge.svg)](https://github.com/donibawono/devsecops-flask/actions/workflows/auto-release-tag.yaml)
+
 Modern Flask-based DevSecOps landing page with:
 
 - Flask
